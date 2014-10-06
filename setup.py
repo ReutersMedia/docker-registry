@@ -42,7 +42,7 @@ if 'DEPS' in os.environ and os.environ['DEPS'].lower() == 'loose':
     requirements = loose
 
 # Require core (the reason this is out of req.txt is to ease tox)
-requirements.insert(0, 'docker-registry-core>=2,<3')
+# requirements.insert(0, 'docker-registry-core>=2,<3')
 
 # Explicit packages list to avoid setup_tools funkyness
 packages = ['docker_registry',
