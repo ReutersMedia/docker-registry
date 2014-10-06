@@ -110,7 +110,7 @@ class Storage(coreboto.Base):
         return path
 
     def stream_write(self, path, fp):
-        if self._config.s3_nomultipart:
+        if self._config.boto_no_multipart:
             # no chunked transfers, so have to read and send size
             self.put_content(path,fp.read())
             return

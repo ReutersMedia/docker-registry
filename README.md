@@ -357,6 +357,7 @@ AWS Simple Storage Service options
 1. `boto_port`: for *non*-Amazon S3-compliant object store
 1. `boto_debug`: for *non*-Amazon S3-compliant object store
 1. `boto_calling_format`: for *non*-Amazon S3-compliant object store
+1. `boto_no_multipart`: don't use multipart uploads 
 1. `storage_path`: string, the sub "folder" where image data will be stored.
 
 Example:

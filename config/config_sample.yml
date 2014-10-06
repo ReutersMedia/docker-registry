@@ -88,6 +88,7 @@ s3: &s3
     boto_port: _env:AWS_PORT
     boto_debug: _env:AWS_DEBUG
     boto_calling_format: _env:AWS_CALLING_FORMAT
+    boto_nomultipart: _env:AWS_NOMULTIPART:false
 
 # Google Cloud Storage Configuration
 # See:
