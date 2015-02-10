@@ -35,7 +35,7 @@ import boto.s3.key
 logger = logging.getLogger(__name__)
 
 
-class Cloudfront():
+class Cloudfront(object):
     def __init__(self, awsaccess, awssecret, base, keyid, privatekey):
         boto.connect_cloudfront(
             awsaccess,
@@ -90,6 +90,12 @@ class Storage(coreboto.Base):
             ).sign
         else:
             self.signer = None
+
+        if self._config.s3_use_sigv4 is True:
+            if self._config.boto_host is None:
+                logger.warn("No S3 Host specified, Boto won't use SIGV4!")
+            boto.config.add_section('s3')
+            boto.config.set('s3', 'use-sigv4', 'True')
 
         if self._config.s3_region is not None:
             return boto.s3.connect_to_region(

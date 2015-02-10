@@ -78,7 +78,7 @@ This is especially useful if you want to run standalone and implement your own a
 [This is another example nginx configuration file](https://github.com/docker/docker-registry/blob/master/contrib/nginx/nginx_1-3-9.conf) that applies to versions of nginx greater than 1.3.9 that have support for the chunked_transfer_encoding directive.
 
 And you might want to add
-[Basic auth on Nginx](http://wiki.nginx.org/HttpAuthBasicModule) to protect it
+[Basic auth on Nginx](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) to protect it
 (if you're not using it on your local network):
 
 
@@ -94,6 +94,37 @@ requests to the Docker Registry:
   ProxyPassReverse   /  http://localhost:5000/
 ```
 
+
+## High Availability and Scaling
+
+It is possible to run multiple containers against the same storage
+back-end for performance and availability reasons.
+
+Here is an example using a shared s3 storage back-end, Redis cache and
+MySQL search database (all should be common across containers for
+consistency)
+
+```
+docker run \
+         -e SETTINGS_FLAVOR=s3 \
+         -e AWS_BUCKET=mybucket \
+         -e AWS_KEY=myawskey \
+         -e AWS_SECRET=myawssecret \
+         -e CACHE_REDIS_HOST=redis.host \
+         -e CACHE_REDIS_PORT=6379 \
+         -e CACHE_REDIS_DB=1 \
+         -e CACHE_LRU_REDIS_HOST=redis.host \
+         -e CACHE_LRU_REDIS_PORT=6379 \
+         -e CACHE_LRU_REDIS_DB=0 \
+         -e AWS_REGION=us-east-1 \
+         -e SEARCH_BACKEND=sqlalchemy \
+         -e SQLALCHEMY_INDEX_DATABASE=mysql://user:pass@mysql.host/db_name
+         -p 5000:5000 \
+         registry
+```
+
+_note: Depending on your version of Docker you may need to add the
+appropriate python mysql drivers to the container_
 
 ## Alternative uses
 
@@ -184,6 +215,32 @@ docker run \
          -p 5000:5000 \
          registry
 ```
+## S3 Storage with Cloudfront
+It is possible Cloudfront in tandem with S3 storage, you need to configure Cloudfront to point it to your S3 bucket.
+
+This flavor can be started as:
+ ```
+docker run \
+         -e SETTINGS_FLAVOR=cloudfronts3 \
+         -e AWS_BUCKET=mybucket \
+         -e STORAGE_PATH=/registry \
+         -e AWS_KEY=myawskey \
+         -e AWS_SECRET=myawssecret \
+         -e SEARCH_BACKEND=sqlalchemy \
+         -e AWS_SECURE=false \
+         -e AWS_ENCRYPT=false \
+         -e AWS_PORT=80 \
+         -e AWS_DEBUG=true \
+         -e CF_BASE_URL=cloudfront_url
+         -e CF_KEYID=cloudfront_key_id
+         -e CF_KEYSECRET=cloudfront_private_key
+         -p 5000:5000 \
+         registry
+```
+`CF_BASE_URL` is the Cloudfront base URL example: https://abcd.cloudfront.net
+`CF_KEYID` is the ID of the Cloudfront keypair you are going to use to sign the URLs so the the registry can 302 to Cloudfront.
+`CF_KEYSECRET` is either the private key as string or file location of the private key used to sign the URLS.
+
 
 ## Microsoft Azure Blob Storage
 

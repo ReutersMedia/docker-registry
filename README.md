@@ -1,3 +1,5 @@
+> **Notice:** *This repository hosts the classic (stable and recommended) python docker-registry. If you are looking for the next-generation (unstable and experimental) of docker distribution tools (including the new golang registry), you should head over to [docker/distribution](https://github.com/docker/distribution) instead.*
+
 Docker-Registry
 ===============
 
@@ -11,7 +13,7 @@ As the documentation evolves with different registry versions, be sure that befo
  * check which version of the registry you are running
  * switch to the corresponding tag to access the README that matches your product version
 
-The stable, released version is the [0.9.0 tag](https://github.com/docker/docker-registry/tree/0.9.0).
+The stable, released version is the [0.9.1 tag](https://github.com/docker/docker-registry/tree/0.9.1).
 
 Please also have a quick look at the [FAQ](FAQ.md) before reporting bugs.
 
@@ -23,7 +25,7 @@ Please also have a quick look at the [FAQ](FAQ.md) before reporting bugs.
 - [Available configuration options](#available-configuration-options)
   - [General options](#general-options)
     - [Authentication options](#authentication-options)
-    - [Search-engine options](#Search-engine-options)
+    - [Search-engine options](#search-engine-options)
       - [sqlalchemy](#sqlalchemy)
     - [Mirroring Options](#mirroring-options)
     - [Cache options](#cache-options)
@@ -45,7 +47,7 @@ The fastest way to get running:
 
 That will use the [official image from the Docker hub](https://registry.hub.docker.com/_/registry/).
 
-Here is a slightly more complex example that launches a registry on port 5000, using an Amazon S3 bucket to store images with a custom path, and enables the search endpoint:  
+Here is a slightly more complex example that launches a registry on port 5000, using an Amazon S3 bucket to store images with a custom path, and enables the search endpoint:
 
 ```
 docker run \
@@ -54,6 +56,7 @@ docker run \
          -e STORAGE_PATH=/registry \
          -e AWS_KEY=myawskey \
          -e AWS_SECRET=myawssecret \
+         -e SEARCH_BACKEND=sqlalchemy \
          -p 5000:5000 \
          registry
 ```
@@ -221,11 +224,7 @@ common:
 On initialization, the `SQLAlchemyIndex` class checks the database
 version.  If the database doesn't exist yet (or does exist, but lacks
 a `version` table), the `SQLAlchemyIndex` creates the database and
-required tables.  To avoid several Gunicorn workers racing to create
-the database, you should launch your registry with
-[--preload][gunicorn-preload].  For example:
-
-    $ docker run -e GUNICORN_OPTS=[--preload] -p 5000:5000 registry
+required tables.
 
 ## Mirroring Options
 
@@ -245,6 +244,9 @@ common:
     source_index: https://index.docker.io
     tags_cache_ttl: 172800 # 2 days
 ```
+
+Beware that mirroring only works for the public registry. You can not create a
+mirror for a private registry.
 
 ## Cache options
 
@@ -286,6 +288,7 @@ To use and install one of these alternate storages:
   * [swift](https://github.com/bacongobbler/docker-registry-driver-swift)
   * [gcs](https://github.com/dmp42/docker-registry-driver-gcs)
   * [glance](https://github.com/dmp42/docker-registry-driver-glance)
+  * [oss](https://github.com/chris-jin/docker-registry-driver-alioss.git)
 
 ### storage file
 
@@ -321,6 +324,7 @@ AWS Simple Storage Service options
       server-side by S3 and will be stored in an encrypted form while at rest
       in S3.
 1. `s3_secure`: boolean, true for HTTPS to S3
+1. `s3_use_sigv4`: boolean, true for USE_SIGV4 (boto_host needs to be set or use_sigv4 will be ignored by boto.)
 1. `boto_bucket`: string, the bucket name for *non*-Amazon S3-compliant object store
 1. `boto_host`: string, host for *non*-Amazon S3-compliant object store
 1. `boto_port`: for *non*-Amazon S3-compliant object store
@@ -352,7 +356,7 @@ sudo docker run -p 5000:5000 -v /home/me/myfolder:/registry-conf -e DOCKER_REGIS
 
 # Advanced use
 
-For more features and advanced options, have a look at the [advanced features documentation](ADVANCED.md) 
+For more features and advanced options, have a look at the [advanced features documentation](ADVANCED.md)
 
 # Drivers
 
@@ -365,5 +369,4 @@ Read [contributing](CONTRIBUTING.md)
 [search-endpoint]: http://docs.docker.com/reference/api/docker-io_api/#search
 [SQLAlchemy]: http://docs.sqlalchemy.org/
 [create_engine]: http://docs.sqlalchemy.org/en/latest/core/engines.html#sqlalchemy.create_engine
-[gunicorn-preload]: http://gunicorn-docs.readthedocs.org/en/latest/settings.html#preload-app
 
