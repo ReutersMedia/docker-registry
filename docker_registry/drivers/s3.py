@@ -123,6 +123,10 @@ class Storage(coreboto.Base):
         return path
 
     def stream_write(self, path, fp):
+        if self._config.boto_no_multipart:
+            # no chunked transfers, so have to read and send size
+            self.put_content(path,fp.read())
+            return
         # Minimum size of upload part size on S3 is 5MB
         buffer_size = 5 * 1024 * 1024
         if self.buffer_size > buffer_size:
